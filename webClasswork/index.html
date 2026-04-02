@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BAIBLUE 的个人信息卡片</title>
+    <style>
+        /* CSS 样式设计 */
+        :root {
+            /* 浅色模式变量 */
+            --card-bg: rgba(255, 255, 255, 0.85); /* 半透明白色 */
+            --text-color: #2c3e50;
+            --input-bg: #ffffff;
+            --primary-color: #3498db;
+            --shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        /* 暗黑模式变量 */
+        [data-theme="dark"] {
+            --card-bg: rgba(30, 30, 30, 0.85); /* 半透明黑色 */
+            --text-color: #ecf0f1;
+            --input-bg: #2c3e50;
+            --primary-color: #e74c3c;
+            --shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            /* 3️⃣ 默认背景图片 */
+            background: url('image/888.jpg') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 1️⃣ 卡片容器 - 居中、阴影、圆角、毛玻璃 */
+        .card {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px); /* 毛玻璃特效 */
+            width: 380px;
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-weight: 300;
+        }
+
+        /* 2️⃣ 头像样式 - 圆形 */
+        .avatar-container {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 25px;
+        }
+
+        #avatar-img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        #avatar-img:hover {
+            transform: scale(1.05);
+            filter: brightness(0.9);
+        }
+
+        /* 隐藏的文件上传控件 */
+        #file-input {
+            display: none;
+        }
+
+        /* 表单部分 */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            font-weight: bold;
+            opacity: 0.8;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 10px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        textarea {
+            height: 90px;
+            resize: none;
+        }
+
+        /* 保存按钮 */
+        #save-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        #save-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* 4️⃣ 切换主题按钮 - 更加直观 */
+        .theme-switcher {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.05);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .theme-switcher:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* 保存成功提示 */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            background: #2ecc71;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            display: none;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>个人信息卡片</h1>
+
+    <div class="card">
+        <!-- 主题切换按钮 -->
+        <button class="theme-switcher" id="theme-btn">
+            <span id="theme-icon">🌙</span>
+            <span id="theme-text">深色模式</span>
+        </button>
+
+        <!-- 头像区域 -->
+        <div class="avatar-container">
+            <!-- 1️⃣ 默认头像地址 -->
+            <img src="image/777.jpg" alt="头像" id="avatar-img" title="点击上传新头像">
+            <input type="file" id="file-input" accept="image/*">
+        </div>
+
+        <!-- 姓名编辑 -->
+        <div class="form-group">
+            <label>姓名</label>
+            <!-- 2️⃣ 默认名字 -->
+            <input type="text" id="user-name" value="BAIBLUE" placeholder="输入您的名字">
+        </div>
+
+        <!-- 简介编辑 -->
+        <div class="form-group">
+            <label>个人简介</label>
+            <textarea id="user-bio" placeholder="写点什么介绍自己吧...">你好！我是 BAIBLUE。这是一份 Web 课程作业，支持头像上传和主题切换。</textarea>
+        </div>
+
+        <!-- 保存按钮 -->
+        <button id="save-btn">保存并更新</button>
+    </div>
+
+    <div id="toast">信息已成功保存！</div>
+
+    <script>
+        /**
+         * JavaScript 功能逻辑
+         */
+
+        const avatarImg = document.getElementById('avatar-img');
+        const fileInput = document.getElementById('file-input');
+        const nameInput = document.getElementById('user-name');
+        const bioInput = document.getElementById('user-bio');
+        const saveBtn = document.getElementById('save-btn');
+        const themeBtn = document.getElementById('theme-btn');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
+        const toast = document.getElementById('toast');
+
+        // --- 1. 头像上传与实时预览 ---
+        avatarImg.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarImg.src = e.target.result; // 实时更新图片src
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // --- 2. 保存功能 ---
+        saveBtn.addEventListener('click', () => {
+            const name = nameInput.value;
+            const bio = bioInput.value;
+
+            // 这里可以添加逻辑将数据打印到控制台或存入 localStorage
+            console.log("更新后的信息：", { 姓名: name, 简介: bio });
+
+            // 弹出提示
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2500);
+        });
+
+        // --- 3. 主题切换逻辑 ---
+        themeBtn.addEventListener('click', () => {
+            const isDark = document.body.hasAttribute('data-theme');
+            
+            if (isDark) {
+                // 切换到浅色
+                document.body.removeAttribute('data-theme');
+                themeIcon.innerText = "🌙";
+                themeText.innerText = "深色模式";
+            } else {
+                // 切换到深色
+                document.body.setAttribute('data-theme', 'dark');
+                themeIcon.innerText = "☀️";
+                themeText.innerText = "浅色模式";
+            }
+        });
+
+        // 容错处理：如果图片不存在，显示占位图
+        avatarImg.onerror = function() {
+            this.src = "https://via.placeholder.com/110?text=Upload";
+        };
+    </script>
+</body>
+</html>
